@@ -5,8 +5,7 @@ library(purrr)
 library(ggplot2)
 library(ggthemes)
 library(gridExtra)
-library(scatterplot3d)
-library(rgl)
+library(plotly)
 
 
 logistic_map <- function(x_prev, r, i=0, reslist=NULL,
@@ -34,7 +33,7 @@ logistic_map <- function(x_prev, r, i=0, reslist=NULL,
 
 
 # altering rate
-maps_rate <- map_dfr(seq(0, 5, by=0.05), function(x){logistic_map(0.9,x)})
+maps_rate <- map_dfr(seq(0, 5, by=0.05), function(x){logistic_map(0.2,x)})
 
 
 points_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
@@ -47,7 +46,7 @@ lines_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
 
 
 # altering starting position
-maps_position <- map_dfr(seq(0, 1, by=0.01), function(x){logistic_map(x,2.9)})
+maps_position <- map_dfr(seq(0, 1, by=0.01), function(x){logistic_map(x,3.77)})
 
 points_position <- ggplot(maps_position, aes(x=starting_position, y=states)) +
   geom_point(size=10^-10) +
@@ -56,6 +55,10 @@ points_position <- ggplot(maps_position, aes(x=starting_position, y=states)) +
 lines_position <- ggplot(maps_position, aes(x=starting_position, y=states)) +
   geom_line(size=10^-10) +
   theme_minimal()
+
+
+grid.arrange(points_position, lines_position,
+             points_rate, lines_rate)
 
 
 # altering both
@@ -71,17 +74,11 @@ scatterplot3d(x=maps_both$starting_position, y=maps_both$rate, z=maps_both$state
               col.grid="lightblue",pch=20)
 
 
-scatterplot3d(x=maps_both$rate, y=maps_both$starting_position, z=maps_both$states,
-              highlight.3d=TRUE, col.axis="blue",
-              col.grid="lightblue",pch=20)
+plot_ly(maps_both, x=~rate, y=~starting_position,
+        z=~states,
+        type="scatter3d", mode="markers", size=0.001)
 
 
-scatterplot3d(x=maps_both$rate, y=maps_both$states, z=maps_both$starting_position,
-              highlight.3d=TRUE, col.axis="blue",
-              col.grid="lightblue",pch=20)
 
-options(rgl.printRglwidget=TRUE)
-scatter3d(x=maps_both$rate, y=maps_both$states, z=maps_both$starting_position,
-          surface = F)
 
 
