@@ -33,7 +33,7 @@ logistic_map <- function(x_prev, r, i=0, reslist=NULL,
 
 
 # altering rate
-maps_rate <- map_dfr(seq(0, 5, by=0.05), function(x){logistic_map(0.2,x)})
+maps_rate <- map_dfr(seq(0, 5, by=0.05), function(x){logistic_map(0.6,x)})
 
 
 points_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
@@ -46,7 +46,7 @@ lines_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
 
 
 # altering starting position
-maps_position <- map_dfr(seq(0, 1, by=0.01), function(x){logistic_map(x,3.77)})
+maps_position <- map_dfr(seq(0, 1, by=0.01), function(x){logistic_map(x,2)})
 
 points_position <- ggplot(maps_position, aes(x=starting_position, y=states)) +
   geom_point(size=10^-10) +
@@ -61,11 +61,14 @@ grid.arrange(points_position, lines_position,
              points_rate, lines_rate)
 
 
-# altering both
-maps_both <- map2_dfr(seq(0, 1, by=0.01),
-                      seq(0, 5, by=0.05),
-                      function(x,y){logistic_map(x,y)})
+combinations <- expand.grid(seq(0, 1, by=0.01), seq(0, 5, by=0.05))
 
+
+
+# altering both
+maps_both <- map2_dfr(combinations$Var1,
+                      combinations$Var2,
+                      function(x,y){logistic_map(x,y)})
 
 
 
@@ -76,7 +79,7 @@ scatterplot3d(x=maps_both$starting_position, y=maps_both$rate, z=maps_both$state
 
 plot_ly(maps_both, x=~rate, y=~starting_position,
         z=~states,
-        type="scatter3d", mode="markers", size=0.001)
+        type="scatter3d", mode="markers", size=10^-9)
 
 
 
