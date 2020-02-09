@@ -14,10 +14,6 @@ logistic_map <- function(x_prev, r, i=0, reslist=NULL,
                          only_final_states=TRUE){
   i <- i+1
   x_next <- r * x_prev * (1- x_prev)
-  if (x_next > 1 | x_next < 0){
-    # ugly hack to avoid exploding due to numerical imprecision
-    x_next <- round(x_next)
-  }
   if (i==1){
     starting_position <- x_prev
     reslist <- c(x_prev, x_next)
@@ -34,7 +30,7 @@ logistic_map <- function(x_prev, r, i=0, reslist=NULL,
         unique_states$index <- 0:(nrow(unique_states)-1)
         
       } else {
-      unique_states <- as.data.frame(unique(as.character(reslist)[50:100]))
+      unique_states <- as.data.frame(unique(reslist[50:100]))
       }
     names(unique_states)[1] <- 'states'
     unique_states$rate <- r
@@ -46,7 +42,7 @@ logistic_map <- function(x_prev, r, i=0, reslist=NULL,
 
 
 # altering rate
-maps_rate <- map_dfr(seq(0, 5, by=0.05), function(x){logistic_map(0.6,x)})
+maps_rate <- map_dfr(seq(0.1, 5, by=0.05), function(x){logistic_map(0.6,x)})
 
 
 points_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
@@ -56,6 +52,7 @@ points_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
 lines_rate <- ggplot(maps_rate, aes(x=rate, y=states)) +
   geom_line(size=10^-10) +
   theme_minimal()
+
 
 
 # altering starting position
@@ -74,7 +71,7 @@ grid.arrange(points_position, lines_position,
              points_rate, lines_rate)
 
 
-combinations <- expand.grid(seq(0, 1, by=0.01), seq(0, 5, by=0.05))
+combinations <- expand.grid(seq(0, 1, by=0.01), seq(0, 4, by=0.05))
 
 
 
@@ -95,7 +92,7 @@ plot_ly(maps_both, x=~rate, y=~starting_position,
         type="scatter3d", mode="markers", size=10^-9)
 
 
-combinations_smaller <- expand.grid(seq(0.1, 0.99, by=0.1), seq(0, 5, by=0.2))
+combinations_smaller <- expand.grid(seq(0.1, 0.99, by=0.1), seq(0, 4, by=0.2))
 
   
 
