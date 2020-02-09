@@ -6,24 +6,38 @@ library(ggplot2)
 library(ggthemes)
 library(gridExtra)
 library(plotly)
+library(Rmpfr)
+
 
 
 logistic_map <- function(x_prev, r, i=0, reslist=NULL,
-                         starting_position=NULL){
+                         starting_position=NULL,
+                         only_final_states=TRUE){
   i <- i+1
   x_next <- r * x_prev * (1- x_prev)
+  if (x_next > 1 | x_next < 0){
+    # ugly hack to avoid exploding due to numerical imprecision
+    x_next <- round(x_next)
+  }
   if (i==1){
     starting_position <- x_prev
     reslist <- c(x_prev, x_next)
   } else {
     reslist <- c(reslist, x_next)
   }
-  if (i < 1000){
+  if (i < 100){
     return(logistic_map(x_next, r, i=i, reslist=reslist,
-                        starting_position=starting_position))  
-  } else{
-    unique_states <- as.data.frame(unique(reslist[900:1000]))
-    names(unique_states) <- 'states'
+                        starting_position=starting_position,
+                        only_final_states=only_final_states))  
+  } else {
+      if (only_final_states==FALSE){
+        unique_states <- as.data.frame(reslist)
+        unique_states$index <- 0:(nrow(unique_states)-1)
+        
+      } else {
+      unique_states <- as.data.frame(unique(as.character(reslist)[50:100]))
+      }
+    names(unique_states)[1] <- 'states'
     unique_states$rate <- r
     unique_states$starting_position <- starting_position
     return(unique_states)
@@ -82,6 +96,55 @@ plot_ly(maps_both, x=~rate, y=~starting_position,
         type="scatter3d", mode="markers", size=10^-9)
 
 
+combinations_smaller <- expand.grid(seq(0.1, 0.99, by=0.1), seq(0, 5, by=0.2))
+
+  
+
+maps_both_smaller <- map2_dfr(combinations_smaller$Var1,
+                      combinations_smaller$Var2,
+                      function(x,y){logistic_map(x,y, only_final_states=FALSE)})
+
+plot_ly(maps_both_smaller, x=~index, y=~states, z=~starting_position,
+        type="scatter3d", mode="markers", size=10^-9)
+
+  
+maps_both_smaller$starting_position <- as.factor(maps_both_smaller$starting_position)
+
+ggplot(maps_both_smaller, aes(x=index, y=states, color=starting_position)) +
+  geom_point(size=10^-10) +
+  facet_wrap(.~rate)
+
+ggplot(maps_both_smaller, aes(x=index, y=states, color=starting_position)) +
+  geom_line(size=10^-10) +
+  facet_wrap(.~rate)
 
 
+ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.25,],
+       aes(x=index, y=states)) +
+  geom_line(size=10^-10) +
+  facet_wrap(.~rate)
 
+ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.5,],
+       aes(x=index, y=states)) +
+  geom_line(size=10^-10) +
+  facet_wrap(.~rate)
+
+ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.8,],
+       aes(x=index, y=states)) +
+  geom_line(size=10^-10) +
+  facet_wrap(.~rate)
+
+
+ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.8 &
+                         maps_both_smaller$rate == 4,],
+       aes(x=index, y=states)) +
+  geom_line(size=10^-10)
+
+
+ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.2 &
+                           maps_both_smaller$rate == 4.2,],
+       aes(x=index, y=states)) +
+  geom_line(size=10^-10)
+
+
+a <- c(mpfr(1.10000000000001,128), mpfr(1,128))
