@@ -6,7 +6,6 @@ library(ggplot2)
 library(ggthemes)
 library(gridExtra)
 library(plotly)
-library(Rmpfr)
 
 
 
@@ -147,4 +146,3 @@ ggplot(maps_both_smaller[maps_both_smaller$starting_position == 0.2 &
   geom_line(size=10^-10)
 
 
-a <- c(mpfr(1.10000000000001,128), mpfr(1,128))
